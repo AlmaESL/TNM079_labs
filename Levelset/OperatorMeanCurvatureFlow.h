@@ -39,7 +39,7 @@ public:
         float mdx = mLS->GetDx();
 
         // The timestep is limited by the CFL condition in Eq. 18 --> mdx^2 / 6alpha
-        return ((mdx * mdx) / (6.f * mAlpha))*0.9f;  // alpha predefined in the constructor
+        return ((mdx * mdx) / (6.f * mAlpha)) * 0.9f;  // alpha predefined in the constructor
 
         /*return 1.f;*/
     }
@@ -61,15 +61,17 @@ public:
         }
     }
 
-    virtual float Evaluate(size_t i, size_t j, size_t k) { 
+    virtual float Evaluate(size_t i, size_t j, size_t k) {
         // Compute the rate of change (dphi/dt)
 
         // Compute the gradient magnitude of phi |gradient(phi)|
-         float dx = mLS->DiffXpm(i, j, k);
-         float dy = mLS->DiffYpm(i, j, k);
-         float dz = mLS->DiffZpm(i, j, k);
-         float gradient_magnitude = std::sqrt(dx * dx + dy * dy + dz * dz);
+        float dx = mLS->DiffXpm(i, j, k);
+        float dy = mLS->DiffYpm(i, j, k);
+        float dz = mLS->DiffZpm(i, j, k);
+        float gradient_magnitude = std::sqrt(dx * dx + dy * dy + dz * dz);
 
+
+        // Eq. 16
         // Term 1
         float phi_yy = mLS->Diff2Ypm(i, j, k);
         float phi_zz = mLS->Diff2Zpm(i, j, k);
@@ -78,31 +80,33 @@ public:
         float phi_yz = mLS->Diff2YZpm(i, j, k);
         float phi_z_squared = phi_z * phi_z;
 
-
         // Term 2
-        float phi_y_squared = phi_y * phi_y; 
+        float phi_y_squared = phi_y * phi_y;
         float phi_xx = mLS->Diff2Xpm(i, j, k);
         float phi_x = mLS->DiffXpm(i, j, k);
         float phi_xz = mLS->Diff2ZXpm(i, j, k);
         float phi_x_squared = phi_x * phi_x;
 
         // Term 3
-        float phi_xy = mLS->Diff2XYpm(i,j,k); 
-
+        float phi_xy = mLS->Diff2XYpm(i, j, k);
 
         // Numerators and denominator
-        float numerator_term1 = (phi_x_squared * (phi_yy + phi_zz)) - (2.0f*phi_y*phi_z*phi_yz);  
-        float denominator = 2.0f * std::pow((phi_x_squared + phi_y_squared + phi_z_squared), (3.f/2.f));
-        float term1 = numerator_term1 / denominator; 
+        float numerator_term1 =
+            (phi_x_squared * (phi_yy + phi_zz)) - (2.0f * phi_y * phi_z * phi_yz);
+        float denominator =
+            2.0f * std::pow((phi_x_squared + phi_y_squared + phi_z_squared), (3.f / 2.f));
+        float term1 = numerator_term1 / denominator;
 
-        float numerator_term2 = (phi_y_squared * (phi_xx + phi_zz)) - (2.0f*phi_x*phi_z*phi_xz); 
-        float term2 = numerator_term2 / denominator; 
+        float numerator_term2 =
+            (phi_y_squared * (phi_xx + phi_zz)) - (2.0f * phi_x * phi_z * phi_xz);
+        float term2 = numerator_term2 / denominator;
 
-        float numerator_term3 = (phi_z_squared * (phi_xx + phi_yy) - (2.f*phi_x*phi_y*phi_xy)); 
-        float term3 = numerator_term3/denominator; 
+        float numerator_term3 =
+            (phi_z_squared * (phi_xx + phi_yy) - (2.f * phi_x * phi_y * phi_xy));
+        float term3 = numerator_term3 / denominator;
 
-        // Get Kappa 
-        float kappa = term1 + term2 + term3; 
+        // Get Kappa
+        float kappa = term1 + term2 + term3;
 
         // compute the rate of change --> Eq. 13
         return mAlpha * kappa * gradient_magnitude;
